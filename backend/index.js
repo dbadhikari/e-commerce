@@ -1,10 +1,29 @@
-
 import dotenv from 'dotenv'
 dotenv.config()
 import express from "express"
 import connectdb from './config/db.js'
+import routes from './Routes/MainRoutes.js'
+import cors from 'cors'
+import cookieParser from "cookie-parser";
+
 const app=express()
 connectdb()
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const frontend={
+    origin:[
+        "http://localhost:5173",
+    ],
+    credentials: true,
+}
+app.use(cors(frontend));
+app.use(cookieParser());
+
+app.use("/api",routes)
+
+
 app.get("/",(req,res)=>{
 res.send("this is backend")
 })

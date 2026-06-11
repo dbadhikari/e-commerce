@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { loadUserFromStorage } from "./redux/slices/authSlice";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import HomePage from "./pages/HomePage";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import VerifyOTP from "./pages/VerifyOTP";
+import Shop from "./pages/ShopPage";
+import ProductDetail from "./pages/ProductDetailPage";
 
+const App=()=> {
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const authPages = ["/login", "/register", "/verify-otp"];
+  const hideLayout = authPages.includes(location.pathname);
+
+  // 🔥 AUTO LOGIN ON APP START
+useEffect(() => {
+    dispatch(loadUserFromStorage());
+  }, [dispatch]);
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {!hideLayout && <Navbar />}
+
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/shop" element={<Shop/>}/>
+        <Route path="/detail" element={<ProductDetail/>}/>
+      </Routes>
+
+      {!hideLayout && <Footer />}
     </>
-  )
+  );
 }
 
 export default App
+
