@@ -1,1 +1,155 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: #f9fafb;
+  color: #1f2937;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.dark body {
+  background: #0b1120;
+  color: #e5e7eb;
+}
+
+.dark .bg-white,
+.dark .bg-white\/95,
+.dark .bg-white\/90,
+.dark .bg-white\/80,
+.dark .bg-white\/70,
+.dark .bg-white\/60,
+.dark .bg-white\/50,
+.dark .bg-white\/40 {
+  background-color: rgb(17 24 39 / 0.94);
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: #111827;
+}
+
+.dark .bg-gray-200 {
+  background-color: #374151;
+}
+
+.dark .bg-gray-800,
+.dark .bg-gray-900 {
+  background-color: #030712;
+}
+
+.dark .bg-emerald-50,
+.dark .bg-teal-50,
+.dark .bg-cyan-50,
+.dark .bg-blue-50,
+.dark .bg-rose-50,
+.dark .bg-purple-50,
+.dark .bg-indigo-50,
+.dark .bg-orange-50,
+.dark .bg-pink-50 {
+  background-color: rgb(6 78 59 / 0.18);
+}
+
+.dark .bg-emerald-100,
+.dark .bg-teal-100,
+.dark .bg-cyan-100,
+.dark .bg-blue-100,
+.dark .bg-rose-100,
+.dark .bg-purple-100,
+.dark .bg-indigo-100,
+.dark .bg-orange-100,
+.dark .bg-pink-100 {
+  background-color: rgb(6 95 70 / 0.28);
+}
+
+.dark .from-gray-50,
+.dark .from-white,
+.dark .from-emerald-50,
+.dark .from-teal-50,
+.dark .from-cyan-50,
+.dark .from-blue-50,
+.dark .from-rose-50,
+.dark .from-purple-50,
+.dark .from-indigo-50,
+.dark .from-orange-50,
+.dark .from-pink-50 {
+  --tw-gradient-from: #0b1120 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(11 17 32 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.dark .to-white,
+.dark .to-gray-50,
+.dark .to-gray-100,
+.dark .to-emerald-50,
+.dark .to-teal-50,
+.dark .to-cyan-50,
+.dark .to-blue-100,
+.dark .to-rose-100,
+.dark .to-purple-100,
+.dark .to-indigo-100,
+.dark .to-orange-100,
+.dark .to-pink-100 {
+  --tw-gradient-to: #111827 var(--tw-gradient-to-position);
+}
+
+.dark .via-teal-50 {
+  --tw-gradient-via: #0f172a var(--tw-gradient-via-position);
+  --tw-gradient-via-stops: var(--tw-gradient-via), rgb(15 23 42 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via-stops);
+}
+
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: #f3f4f6;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500 {
+  color: #cbd5e1;
+}
+
+.dark .text-gray-400 {
+  color: #94a3b8;
+}
+
+.dark .border-white\/50,
+.dark .border-gray-50,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: rgb(51 65 85 / 0.9);
+}
+
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl {
+  --tw-shadow-color: rgb(0 0 0 / 0.45);
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  color: #f9fafb;
+  caret-color: #10b981;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+.dark img {
+  color-scheme: light;
+}

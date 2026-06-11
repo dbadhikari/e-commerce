@@ -11,6 +11,8 @@ import Login from "./pages/Login";
 import VerifyOTP from "./pages/VerifyOTP";
 import Shop from "./pages/ShopPage";
 import ProductDetail from "./pages/ProductDetailPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import AddProductPage from "./pages/AddProductPage";
 
 const App=()=> {
   const location = useLocation();
@@ -32,7 +34,9 @@ useEffect(() => {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/shop" element={<Shop/>}/>
+        <Route path="/add-product" element={<AddProductPage />} />
         <Route path="/detail" element={<ProductDetail/>}/>
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       {!hideLayout && <Footer />}
@@ -41,4 +45,3 @@ useEffect(() => {
 }
 
 export default App
-

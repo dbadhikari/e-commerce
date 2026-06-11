@@ -28,6 +28,7 @@ import {
 import { logout } from '../redux/slices/authSlice';
 import { toast } from 'react-hot-toast';
 import axios from 'axios'
+import ThemeToggle from './ThemeToggle';
 
 
 const BACKEND_API = import.meta.env.VITE_BACKEND_API;
@@ -54,14 +55,14 @@ const Navbar = () => {
   const wishlistCount = 2;
 
   const categories = [
-    { name: 'Electronics', icon: '📱', link: '/category/electronics', description: 'Latest gadgets & devices' },
-    { name: 'Fashion', icon: '👕', link: '/category/fashion', description: 'Trendy clothing & accessories' },
-    { name: 'Home & Living', icon: '🏠', link: '/category/home-living', description: 'Furniture & decor' },
-    { name: 'Books', icon: '📚', link: '/category/books', description: 'Books & stationery' },
-    { name: 'Sports', icon: '⚽', link: '/category/sports', description: 'Sports equipment & gear' },
-    { name: 'Toys', icon: '🎮', link: '/category/toys', description: 'Games & toys' },
-    { name: 'Groceries', icon: '🥬', link: '/category/groceries', description: 'Fresh groceries' },
-    { name: 'Beauty', icon: '💄', link: '/category/beauty', description: 'Beauty & personal care' }
+    { name: 'Electronics', icon: '📱', description: 'Latest gadgets & devices' },
+    { name: 'Fashion', icon: '👕', description: 'Trendy clothing & accessories' },
+    { name: 'Home & Living', icon: '🏠', description: 'Furniture & decor' },
+    { name: 'Books', icon: '📚', description: 'Books & stationery' },
+    { name: 'Sports', icon: '⚽', description: 'Sports equipment & gear' },
+    { name: 'Toys', icon: '🎮', description: 'Games & toys' },
+    { name: 'Groceries', icon: '🥬', description: 'Fresh groceries' },
+    { name: 'Beauty', icon: '💄', description: 'Beauty & personal care' }
   ];
 
   const userMenuItems = [
@@ -108,11 +109,14 @@ const Navbar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       setIsMobileMenuOpen(false);
+      setIsCategoriesOpen(false);
     }
   };
+
+  const getCategoryLink = (categoryName) => `/shop?category=${encodeURIComponent(categoryName)}`;
 
   const handleLogout = async() => {
    const req=await axios.get(`${BACKEND_API}/UserRoute/logout`,{withCredentials:true}) 
@@ -134,7 +138,7 @@ const Navbar = () => {
   return (
     <>
       {/* Top Announcement Bar with Marquee effect */}
-      <div className="bg-gradient-to-r from-emerald-700 to-teal-700 text-white text-sm py-2.5 px-4 text-center relative overflow-hidden">
+      <div className="bg-gradient-to-r from-emerald-700 to-teal-700 dark:from-slate-950 dark:to-gray-900 text-white text-sm py-2.5 px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-white/5 transform -skew-x-12"></div>
         <div className="container mx-auto relative z-10">
           <div className="flex items-center justify-center gap-2 flex-wrap">
@@ -152,13 +156,13 @@ const Navbar = () => {
       </div>
 
       {/* Main Navbar */}
-      <nav className={`bg-white transition-all duration-300 sticky top-0 z-50 ${scrolled ? 'shadow-xl' : 'shadow-md'}`}>
+      <nav className={`bg-white/95 dark:bg-slate-950/92 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 transition-all duration-300 sticky top-0 z-50 ${scrolled ? 'shadow-lg' : 'shadow-sm'}`}>
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3 lg:gap-6">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -181,65 +185,92 @@ const Navbar = () => {
               </div>
             </Link>
 
-            {/* Search Bar - Desktop */}
-            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl mx-4">
-              <div className="relative w-full group">
-                <input
-                  type="text"
-                  placeholder="Search for products, brands, and more..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-28 py-3 rounded-full border-2 border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all outline-none bg-gray-50 group-hover:bg-white"
-                />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <button 
-                  type="submit" 
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold hover:shadow-lg transition-all hover:scale-105"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
+            {/* Airbnb-style Search Bar - Desktop */}
+            <form onSubmit={handleSearch} className="hidden md:flex flex-1 justify-center categories-menu">
+              <div className="relative w-full max-w-xl">
+                <div className="flex items-center rounded-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900/90 shadow-sm hover:shadow-md transition-all overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+                    className="hidden lg:flex min-w-36 items-center gap-2 px-5 py-3 text-left hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <Grid3x3 className="w-4 h-4 text-emerald-600" />
+                    <span>
+                      <span className="block text-xs font-bold text-gray-800 leading-tight">Categories</span>
+                      <span className="block text-xs text-gray-500 leading-tight">Explore all</span>
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${isCategoriesOpen ? 'rotate-180' : ''}`} />
+                  </button>
 
-            {/* Navigation Icons */}
-            <div className="flex items-center gap-2 md:gap-4">
-              {/* Categories Dropdown - Desktop */}
-              <div className="hidden lg:block relative categories-menu">
-                <button
-                  onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-emerald-600 transition-colors rounded-lg hover:bg-gray-50"
-                >
-                  <Grid3x3 className="w-5 h-5" />
-                  <span className="font-medium">Categories</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCategoriesOpen ? 'rotate-180' : ''}`} />
-                </button>
-                
+                  <div className="hidden lg:block h-8 w-px bg-gray-200 dark:bg-slate-700" />
+
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      placeholder="Search products"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-transparent pl-5 lg:pl-4 pr-14 py-3 outline-none text-sm"
+                    />
+                    <button
+                      type="submit"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-2 rounded-full hover:shadow-lg transition-all hover:scale-105"
+                      aria-label="Search"
+                    >
+                      <Search className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
                 {isCategoriesOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-[600px] bg-white rounded-2xl shadow-2xl py-3 z-50 border border-gray-100 animate-fade-in-down">
-                    <div className="grid grid-cols-2 gap-1 p-3">
+                  <div className="absolute left-1/2 top-full mt-3 w-[min(92vw,560px)] -translate-x-1/2 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-3 z-50 border border-gray-100 dark:border-slate-700 animate-fade-in-down">
+                    <div className="px-2 pb-3">
+                      <p className="text-sm font-bold text-gray-900">Shop by category</p>
+                      <p className="text-xs text-gray-500">Pick a department and keep browsing.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                       {categories.map((cat) => (
                         <Link
                           key={cat.name}
-                          to={cat.link}
+                          to={getCategoryLink(cat.name)}
                           onClick={() => setIsCategoriesOpen(false)}
-                          className="flex items-center gap-3 px-3 py-3 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all group"
+                          className="flex items-center gap-3 px-3 py-3 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30 rounded-2xl transition-all group"
                         >
-                          <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
-                          <div>
-                            <div className="font-semibold text-sm">{cat.name}</div>
-                            <div className="text-xs text-gray-500">{cat.description}</div>
+                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-50 dark:bg-slate-800 text-xl group-hover:bg-white dark:group-hover:bg-slate-950 group-hover:scale-105 transition-all">
+                            {cat.icon}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-sm truncate">{cat.name}</div>
+                            <div className="text-xs text-gray-500 truncate">{cat.description}</div>
                           </div>
                         </Link>
                       ))}
                     </div>
-                    <div className="border-t border-gray-100 mt-2 pt-3 px-3">
-                      <Link to="/all-categories" className="text-emerald-600 text-sm font-semibold hover:underline">
-                        View All Categories →
+                    <div className="border-t border-gray-100 mt-3 pt-3 px-2">
+                      <Link
+                        to="/all-categories"
+                        onClick={() => setIsCategoriesOpen(false)}
+                        className="text-emerald-600 text-sm font-semibold hover:underline"
+                      >
+                        View all categories
                       </Link>
                     </div>
                   </div>
                 )}
               </div>
+            </form>
+
+              {/* Navigation Icons */}
+            <div className="flex items-center gap-2 md:gap-4">
+              <ThemeToggle />
+
+              <Link
+                to="/add-product"
+                className="hidden xl:inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-emerald-300 hover:text-emerald-700 dark:border-slate-700 dark:hover:border-emerald-700"
+              >
+                <Package className="h-4 w-4" />
+                Add Product
+              </Link>
 
               {/* Notifications - Only for logged in users */}
               {isAuthenticated && (
@@ -454,12 +485,12 @@ const Navbar = () => {
                   All Categories
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {categories.map((cat) => (
+                      {categories.map((cat) => (
                     <Link
                       key={cat.name}
-                      to={cat.link}
+                      to={getCategoryLink(cat.name)}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl hover:bg-emerald-50 transition-all group"
+                      className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-slate-900 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all group"
                     >
                       <span className="text-xl group-hover:scale-110 transition-transform">{cat.icon}</span>
                       <span className="text-sm font-medium">{cat.name}</span>

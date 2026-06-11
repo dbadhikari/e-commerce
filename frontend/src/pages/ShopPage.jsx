@@ -1,5 +1,6 @@
 // src/pages/Shop.jsx
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Link, useSearchParams } from 'react-router-dom';
 import { 
   ChevronRight, 
@@ -24,6 +25,9 @@ import {
   RotateCcw
 } from 'lucide-react';
 
+const BACKEND_API = import.meta.env.VITE_BACKEND_API;
+const DEFAULT_PRODUCT_IMAGE = "https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=400";
+
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
@@ -31,6 +35,9 @@ const Shop = () => {
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [sortBy, setSortBy] = useState('featured');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productError, setProductError] = useState("");
   
   // Filter states
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -39,27 +46,13 @@ const Shop = () => {
   const [selectedRating, setSelectedRating] = useState(null);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [onSaleOnly, setOnSaleOnly] = useState(false);
-
-  // Filter options data
-  const categories = [
-    { name: 'Electronics', count: 2345, icon: '📱' },
-    { name: 'Fashion', count: 5678, icon: '👕' },
-    { name: 'Home & Living', count: 1234, icon: '🏠' },
-    { name: 'Books', count: 3456, icon: '📚' },
-    { name: 'Sports', count: 890, icon: '⚽' },
-    { name: 'Gaming', count: 456, icon: '🎮' },
-    { name: 'Audio', count: 789, icon: '🎧' },
-    { name: 'Accessories', count: 2345, icon: '💎' }
-  ];
-
-  const brands = [
-    'Apple', 'Samsung', 'Sony', 'Nike', 'Adidas', 'LG', 'Bose', 'Dyson'
-  ];
+  const queryCategory = searchParams.get("category");
+  const querySearch = searchParams.get("search")?.trim() || "";
 
   const ratings = [5, 4, 3, 2, 1];
 
-  // All products data
-  const allProducts = [
+  // Fallback shape kept for reference while the live backend data loads.
+  const fallbackProducts = [
     {
       id: 1,
       name: "iPhone 15 Pro Max",
@@ -242,8 +235,125 @@ const Shop = () => {
     }
   ];
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoadingProducts(true);
+      setProductError("");
+
+      try {
+        const response = await axios.get(`${BACKEND_API}/ProductRoute`);
+        const backendProducts = response.data.products || [];
+
+        const mappedProducts = backendProducts.map((product) => {
+          const originalPrice = Number(product.attributes?.originalPrice) || product.price;
+          const discount = originalPrice > product.price
+            ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
+            : 0;
+          const variantStock = product.variants?.reduce((total, variant) => total + (Number(variant.stock) || 0), 0) || 0;
+          const createdAt = product.createdAt ? new Date(product.createdAt) : null;
+          const isNew = createdAt
+            ? Date.now() - createdAt.getTime() < 14 * 24 * 60 * 60 * 1000
+            : false;
+
+          return {
+            id: product._id,
+            name: product.name,
+            brand: product.brand || "Generic",
+            price: product.price || 0,
+            originalPrice,
+            rating: Number(product.attributes?.rating) || 0,
+            reviews: Number(product.attributes?.reviews) || 0,
+            image: product.images?.[0] || DEFAULT_PRODUCT_IMAGE,
+            category: product.category || "Uncategorized",
+            inStock: (Number(product.stock) || 0) + variantStock > 0,
+            onSale: discount > 0,
+            discount,
+            isNew,
+            description: product.description || "",
+          };
+        });
+
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.log(error);
+        setProductError("Unable to load products. Please check your backend server.");
+        setProducts([]);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    setSelectedCategories(queryCategory ? [queryCategory] : []);
+  }, [queryCategory]);
+
+  const categoryIcons = {
+    Electronics: "📱",
+    Fashion: "👕",
+    "Home & Living": "🏠",
+    Books: "📚",
+    Sports: "⚽",
+    Gaming: "🎮",
+    Audio: "🎧",
+    Accessories: "💎",
+    Uncategorized: "📦",
+  };
+
+  const categories = Object.values(
+    products.reduce((acc, product) => {
+      const categoryName = product.category || "Uncategorized";
+
+      if (!acc[categoryName]) {
+        acc[categoryName] = {
+          name: categoryName,
+          count: 0,
+          icon: categoryIcons[categoryName] || "📦",
+        };
+      }
+
+      acc[categoryName].count += 1;
+      return acc;
+    }, {})
+  );
+
+  const brands = [...new Set(products.map((product) => product.brand).filter(Boolean))];
+
+  const removeSearchParam = (key) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete(key);
+    setSearchParams(nextParams);
+  };
+
+  const handleCategoryToggle = (categoryName) => {
+    if (selectedCategories.includes(categoryName)) {
+      const nextCategories = selectedCategories.filter(c => c !== categoryName);
+      setSelectedCategories(nextCategories);
+
+      if (queryCategory === categoryName) {
+        removeSearchParam("category");
+      }
+    } else {
+      setSelectedCategories([...selectedCategories, categoryName]);
+    }
+  };
+
   // Filter products based on selections
-  const filteredProducts = allProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
+    const normalizedSearch = querySearch.toLowerCase();
+
+    if (
+      normalizedSearch &&
+      !product.name.toLowerCase().includes(normalizedSearch) &&
+      !product.brand.toLowerCase().includes(normalizedSearch) &&
+      !product.category.toLowerCase().includes(normalizedSearch) &&
+      !product.description.toLowerCase().includes(normalizedSearch)
+    ) {
+      return false;
+    }
+
     // Category filter
     if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
       return false;
@@ -302,6 +412,7 @@ const Shop = () => {
     if (inStockOnly) count++;
     if (onSaleOnly) count++;
     if (priceRange.min > 0 || priceRange.max < 200000) count++;
+    if (querySearch) count++;
     return count;
   };
 
@@ -312,6 +423,7 @@ const Shop = () => {
     setSelectedRating(null);
     setInStockOnly(false);
     setOnSaleOnly(false);
+    setSearchParams({});
   };
 
   const FilterSection = ({ title, children, defaultOpen = true }) => {
@@ -453,10 +565,18 @@ const Shop = () => {
               {/* Active Filters */}
               {getFilterCount() > 0 && (
                 <div className="mb-4 flex flex-wrap gap-2 pb-4 border-b border-gray-200">
+                  {querySearch && (
+                    <span className="bg-emerald-50 text-emerald-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                      Search: {querySearch}
+                      <button onClick={() => removeSearchParam("search")}>
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
                   {selectedCategories.map(cat => (
                     <span key={cat} className="bg-emerald-50 text-emerald-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
                       {cat}
-                      <button onClick={() => setSelectedCategories(selectedCategories.filter(c => c !== cat))}>
+                      <button onClick={() => handleCategoryToggle(cat)}>
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -488,13 +608,7 @@ const Shop = () => {
                       <input
                         type="checkbox"
                         checked={selectedCategories.includes(category.name)}
-                        onChange={() => {
-                          if (selectedCategories.includes(category.name)) {
-                            setSelectedCategories(selectedCategories.filter(c => c !== category.name));
-                          } else {
-                            setSelectedCategories([...selectedCategories, category.name]);
-                          }
-                        }}
+                        onChange={() => handleCategoryToggle(category.name)}
                         className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                       />
                       <span className="text-gray-700 group-hover:text-emerald-600 transition-colors">
@@ -697,7 +811,25 @@ const Shop = () => {
             </div>
             
             {/* Products Grid/List */}
-            {sortedProducts.length > 0 ? (
+            {isLoadingProducts ? (
+              <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+                <Package className="w-16 h-16 text-emerald-500 mx-auto mb-4 animate-pulse" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading products</h3>
+                <p className="text-gray-500">Fetching latest products from the backend.</p>
+              </div>
+            ) : productError ? (
+              <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+                <Package className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Products could not load</h3>
+                <p className="text-gray-500 mb-4">{productError}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-emerald-600 font-semibold hover:text-emerald-700"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : sortedProducts.length > 0 ? (
               <div className={viewMode === 'grid' 
                 ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' 
                 : 'space-y-4'
